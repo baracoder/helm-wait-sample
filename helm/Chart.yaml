@@ -1,0 +1,4 @@
+version: 0.0.1-alpha.1+bla
+name: wait-test
+description: Test Chart to reproduce wait bug
+home: https://github.com/baracoder/helm-wait-sample

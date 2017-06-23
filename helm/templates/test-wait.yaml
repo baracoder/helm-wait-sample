@@ -1,0 +1,55 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: test-wait
+type: Opaque
+data:
+  config.json: {{ .Values.TestSecret | b64enc }}
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: test-wait
+spec:
+  replicas: 1
+  minReadySeconds: 20
+  selector:
+    matchLabels:
+      k8s-app: test-wait
+  template:
+    metadata:
+      labels:
+        k8s-app: test-wait
+        commit: {{ .Values.Commit }}
+        helm.release: "{{ .Release.Revision }}"
+    spec:
+      containers:
+      - image: nginx
+        imagePullPolicy: {{ .Values.ImagePullPolicy}}
+        name: test-nginx
+        resources:
+          limits:
+            memory: 10Mi
+        volumeMounts:
+        - mountPath: /config
+          name: config
+      volumes:
+      - name: config
+        secret:
+          secretName: test-wait
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-wait
+  namespace: default
+spec:
+  externalIPs:
+    - 192.168.0.240
+  selector:
+    k8s-app: test-wait
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 80
